@@ -1,0 +1,39 @@
+import os
+import PyPDF2
+
+def extract_text_from_pdf(pdf_path):
+    with open(pdf_path, 'rb') as file:
+        pdf_reader = PyPDF2.PdfReader(file)
+        text = ""
+        for page in pdf_reader.pages:
+            page_text = page.extract_text()
+            if page_text:
+                # Entferne alle Zeilenumbrüche
+                page_text = page_text.replace('\n', ' ')
+                reference_index = page_text.find('References')
+                if reference_index == -1:
+                    reference_index = page_text.find('R E FE R E N C E S')
+                if reference_index != -1:
+                    page_text = page_text[:reference_index] + "\n"
+                    break  # Stop reading further if 'References' or 'R E FE R E N C E S' is found
+                else:
+                    text += page_text + "\n"
+        return text.strip()  # Entferne führende und abschließende Leerzeichen
+
+def merge_pdf_texts(directory_path, output_file):
+    with open(output_file, 'w', encoding='utf-8') as output:
+        for filename in os.listdir(directory_path):
+            if filename.endswith('.pdf'):
+                print(f"Processing {filename}...")
+                file_path = os.path.join(directory_path, filename)
+                text = extract_text_from_pdf(file_path)
+                output.write(text)
+                output.write("\n\n")  # Zwei Zeilen Abstand nach dem Text
+                output.write(filename + "\n")  # PDF-Dateiname
+                output.write("\n\n")  # Eine zusätzliche Zeile Abstand
+
+directory_path = 'C:/Users/Till/Documents/GitHub/NER-Aufgabe-Transplantation/texts'
+output_file = 'C:/Users/Till/Documents/GitHub/NER-Aufgabe-Transplantation/texts bearbeitet/text_for_annotation.txt'
+
+
+merge_pdf_texts(directory_path, output_file)
